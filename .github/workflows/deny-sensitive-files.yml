@@ -1,0 +1,103 @@
+name: Deny Sensitive Files
+on: 
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+jobs:
+  scan:
+    name: Block Sensitive Files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check for sensitive environment files
+        run: |
+          echo "🔍 Scanning for sensitive files..."
+          
+          # Check for .env files (except .env.example)
+          if git ls-files | grep -E '\.env(\.|$)' | grep -v '\.env\.example'; then
+            echo "❌ ERROR: Sensitive .env files detected!"
+            echo "Files found:"
+            git ls-files | grep -E '\.env(\.|$)' | grep -v '\.env\.example'
+            echo ""
+            echo "Please remove these files and add them to .gitignore"
+            exit 1
+          fi
+          
+          # Check for backup files
+          if git ls-files | grep -E '\.(backup|bak|old|tmp|temp)$'; then
+            echo "❌ ERROR: Backup/temporary files detected!"
+            echo "Files found:"
+            git ls-files | grep -E '\.(backup|bak|old|tmp|temp)$'
+            echo ""
+            echo "Please remove these files and add them to .gitignore"
+            exit 1
+          fi
+          
+          # Check for local configuration files
+          if git ls-files | grep -E '\.local(\.|$)'; then
+            echo "❌ ERROR: Local configuration files detected!"
+            echo "Files found:"
+            git ls-files | grep -E '\.local(\.|$)'
+            echo ""
+            echo "Please remove these files and add them to .gitignore"
+            exit 1
+          fi
+          
+          # Check for production environment files
+          if git ls-files | grep -E 'env\.production'; then
+            echo "❌ ERROR: Production environment file detected!"
+            echo "Files found:"
+            git ls-files | grep -E 'env\.production'
+            echo ""
+            echo "Please remove this file and add it to .gitignore"
+            exit 1
+          fi
+          
+          # Check for log files
+          if git ls-files | grep -E '\.(log|logs)$'; then
+            echo "❌ ERROR: Log files detected!"
+            echo "Files found:"
+            git ls-files | grep -E '\.(log|logs)$'
+            echo ""
+            echo "Please remove these files and add them to .gitignore"
+            exit 1
+          fi
+          
+          # Check for database files
+          if git ls-files | grep -E '\.(db|sqlite|sqlite3)$'; then
+            echo "❌ ERROR: Database files detected!"
+            echo "Files found:"
+            git ls-files | grep -E '\.(db|sqlite|sqlite3)$'
+            echo ""
+            echo "Please remove these files and add them to .gitignore"
+            exit 1
+          fi
+          
+          echo "✅ No sensitive files detected"
+          echo "✅ Security scan passed"
+      
+      - name: Check .gitignore configuration
+        run: |
+          echo "🔍 Checking .gitignore configuration..."
+          
+          # Check if .env files are properly ignored
+          if ! grep -q "\.env" .gitignore; then
+            echo "⚠️  WARNING: .env files not found in .gitignore"
+          fi
+          
+          # Check if backup files are ignored
+          if ! grep -q "\.backup" .gitignore; then
+            echo "⚠️  WARNING: .backup files not found in .gitignore"
+          fi
+          
+          # Check if local files are ignored
+          if ! grep -q "\.local" .gitignore; then
+            echo "⚠️  WARNING: .local files not found in .gitignore"
+          fi
+          
+          echo "✅ .gitignore check completed"

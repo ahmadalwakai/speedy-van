@@ -115,6 +115,7 @@ async function main() {
       totalGBP: 2800, // £28.00 total
       customerName: 'John Smith',
       customerPhone: '+447700900000',
+      customerPhoneNormalized: '447700900000',
       customerEmail: 'john.smith@example.com',
       status: 'DRAFT',
     },
@@ -204,6 +205,7 @@ async function main() {
       totalGBP: 2520, // £25.20 total
       customerName: 'Sarah Johnson',
       customerPhone: '+447700900001',
+      customerPhoneNormalized: '447700900001',
       customerEmail: 'sarah.johnson@example.com',
       status: 'CONFIRMED',
       stripePaymentIntentId: 'pi_test_confirmed_123',

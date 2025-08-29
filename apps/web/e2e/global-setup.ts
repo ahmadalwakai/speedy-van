@@ -219,6 +219,7 @@ async function globalSetup(config: FullConfig) {
           totalGBP: 5000,
           customerName: 'Test Customer',
           customerPhone: '+447700900001',
+          customerPhoneNormalized: '447700900001',
           customerEmail: testCustomerEmail,
         }
       }),
@@ -274,6 +275,7 @@ async function globalSetup(config: FullConfig) {
           totalGBP: 7500,
           customerName: 'Test Customer',
           customerPhone: '+447700900001',
+          customerPhoneNormalized: '447700900001',
           customerEmail: testCustomerEmail,
         }
       })

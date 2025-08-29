@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { createUniqueReference } from '@/lib/ref';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { safeSendAutoSMS } from '@/lib/sms.config';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -142,6 +143,7 @@ export async function POST(request: NextRequest) {
         customerName: bookingData.customer.name,
         customerEmail: bookingData.customer.email,
         customerPhone: bookingData.customer.phone,
+        customerPhoneNormalized: bookingData.customer.phone.replace(/^\+44/, '44').replace(/^0/, '44'),
         
         // Link to customer account if authenticated
         customerId: customerId,
@@ -203,6 +205,21 @@ export async function POST(request: NextRequest) {
       total: bookingData.calculatedTotal,
       linkedToAccount: customerId ? 'Yes' : 'No'
     });
+
+    // Send SMS notification for booking creation
+    try {
+      await safeSendAutoSMS({
+        type: "BOOKING_CREATED",
+        to: bookingData.customer.phone,
+        data: { 
+          name: bookingData.customer.name, 
+          ref: booking.reference 
+        }
+      });
+    } catch (smsError) {
+      console.warn('⚠️ Failed to send booking creation SMS:', smsError);
+      // Don't fail the booking creation if SMS fails
+    }
 
     // Return the created booking with all details
     return NextResponse.json({

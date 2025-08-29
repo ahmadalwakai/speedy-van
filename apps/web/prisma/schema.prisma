@@ -725,7 +725,8 @@ model DriverApplication {
   email                        String                  @unique
   firstName                    String
   lastName                     String
-  phone                        String
+  phone                        String   // Raw user input
+  phoneNormalized              String   @default("447901846297") // Normalized UK E164 format (447901846297)
   dateOfBirth                  DateTime
   addressLine1                 String
   addressLine2                 String?
@@ -748,7 +749,8 @@ model DriverApplication {
   rightToWorkShareCode         String
   rightToWorkDocument          String?
   emergencyContactName         String
-  emergencyContactPhone        String
+  emergencyContactPhone        String   // Raw user input
+  emergencyContactPhoneNormalized String @default("447901846297") // Normalized UK E.164 format (447901846297)
   emergencyContactRelationship String
   agreeToTerms                 Boolean
   agreeToDataProcessing        Boolean
@@ -806,7 +808,8 @@ model Booking {
   updatedAt                     DateTime        @updatedAt
   driverId                      String?
   customerName                  String
-  customerPhone                 String
+  customerPhone                 String   // Raw user input
+  customerPhoneNormalized       String   @default("447901846297") // Normalized UK E.164 format (447901846297)
   reference                     String          @unique
   accessSurchargeGBP            Int
   availabilityMultiplierPercent Int
@@ -1315,4 +1318,38 @@ enum ChatParticipantRole {
   admin
   guest
   support
+}
+
+/// OTP verification codes for authentication
+model OtpCode {
+  id              String   @id @default(cuid())
+  phoneRaw        String
+  phoneNormalized String
+  purpose         String   // e.g., "login", "signup"
+  codeHash        String
+  expiresAt       DateTime
+  attempts        Int      @default(0)
+  maxAttempts     Int      @default(5)
+  consumedAt      DateTime?
+  createdAt       DateTime @default(now())
+  metadata        Json?
+
+  @@index([phoneNormalized])
+  @@index([expiresAt])
+}
+
+/// SMS delivery reports from The SMS Works API
+model SmsDlr {
+  id           String   @id @default(cuid())
+  messageId    String   @unique
+  destination  String
+  status       String
+  statusCode   String?
+  errorCode    String?
+  deliveredTs  DateTime?
+  messageParts Int?
+  payload      Json
+  createdAt    DateTime @default(now())
+
+  @@index([destination])
 }

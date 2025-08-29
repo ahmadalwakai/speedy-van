@@ -53,6 +53,7 @@ import {
 } from 'react-icons/fa';
 import EmailInputWithSuggestions from './EmailInputWithSuggestions';
 import BookingNavigationButtons from './BookingNavigationButtons';
+import { normalizeUK, isValidUKMobile } from '@/lib/phone';
 
 interface CustomerDetailsStepProps {
   bookingData: any;
@@ -156,7 +157,7 @@ export default function CustomerDetailsStep({
     // Remove all non-digit characters
     const digits = value.replace(/\D/g, '');
     
-    // Format UK phone number
+    // Format UK phone number for display
     if (digits.startsWith('44')) {
       return `+${digits.slice(0, 2)} ${digits.slice(2, 6)} ${digits.slice(6, 9)} ${digits.slice(9)}`;
     } else if (digits.startsWith('0')) {
@@ -243,8 +244,8 @@ export default function CustomerDetailsStep({
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return emailRegex.test(value);
     } else if (field === 'phone') {
-      const phoneRegex = /^(\+44|0)[1-9]\d{8,9}$/;
-      return phoneRegex.test(value.replace(/\s/g, ''));
+      // Use the phone validation utility
+      return isValidUKMobile(value.replace(/\s/g, ''));
     }
     return false;
   };

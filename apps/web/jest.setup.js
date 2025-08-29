@@ -1,16 +1,5 @@
-// Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
-
-// Configure React Testing Library for React 18
-import { configure } from '@testing-library/react'
-
-configure({
-  testIdAttribute: 'data-testid',
-  // Disable automatic cleanup to avoid issues with React 18
-  asyncUtilTimeout: 5000,
-  // Disable React 18 concurrent features in tests
-  unstable_advanceTimersWrapper: (cb) => cb(),
-})
+import 'jest-environment-jsdom'
 
 // Mock Next.js router
 jest.mock('next/router', () => ({
@@ -32,6 +21,11 @@ jest.mock('next/router', () => ({
         emit: jest.fn(),
       },
       isFallback: false,
+      isLocaleDomain: true,
+      isReady: true,
+      defaultLocale: 'en',
+      domainLocales: [],
+      isPreview: false,
     }
   },
 }))
@@ -56,10 +50,77 @@ jest.mock('next/navigation', () => ({
   },
 }))
 
-// Mock fetch
-global.fetch = jest.fn()
+// Mock Next.js image
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: (props) => {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img {...props} />
+  },
+}))
 
-// Mock window.matchMedia
+// Mock Next.js link
+jest.mock('next/link', () => ({
+  __esModule: true,
+  default: ({ children, href, ...props }) => {
+    return <a href={href} {...props}>{children}</a>
+  },
+}))
+
+// Mock environment variables
+process.env.NODE_ENV = 'test'
+process.env.NEXTAUTH_SECRET = 'test-secret'
+process.env.NEXTAUTH_URL = 'http://localhost:3000'
+
+// Mock console methods in tests
+const originalConsoleError = console.error
+const originalConsoleWarn = console.warn
+
+beforeAll(() => {
+  console.error = (...args) => {
+    if (
+      typeof args[0] === 'string' &&
+      args[0].includes('Warning: ReactDOM.render is no longer supported')
+    ) {
+      return
+    }
+    originalConsoleError.call(console, ...args)
+  }
+  
+  console.warn = (...args) => {
+    if (
+      typeof args[0] === 'string' &&
+      (args[0].includes('Warning: componentWillReceiveProps') ||
+       args[0].includes('Warning: componentWillUpdate'))
+    ) {
+      return
+    }
+    originalConsoleWarn.call(console, ...args)
+  }
+})
+
+afterAll(() => {
+  console.error = originalConsoleError
+  console.warn = originalConsoleWarn
+})
+
+// Mock Intersection Observer
+global.IntersectionObserver = class IntersectionObserver {
+  constructor() {}
+  disconnect() {}
+  observe() {}
+  unobserve() {}
+}
+
+// Mock Resize Observer
+global.ResizeObserver = class ResizeObserver {
+  constructor() {}
+  disconnect() {}
+  observe() {}
+  unobserve() {}
+}
+
+// Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: jest.fn().mockImplementation(query => ({
@@ -74,47 +135,38 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 })
 
-// Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-}
-
-// Mock ResizeObserver
-global.ResizeObserver = class ResizeObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-}
-
-// Mock Geolocation API
-Object.defineProperty(navigator, 'geolocation', {
-  value: {
-    getCurrentPosition: jest.fn(),
-    watchPosition: jest.fn(),
-    clearWatch: jest.fn(),
-  },
+// Mock window.scrollTo
+Object.defineProperty(window, 'scrollTo', {
+  writable: true,
+  value: jest.fn(),
 })
 
-// Mock Notification API
-Object.defineProperty(window, 'Notification', {
-  value: {
-    permission: 'granted',
-    requestPermission: jest.fn().mockResolvedValue('granted'),
-  },
+// Mock window.scroll
+Object.defineProperty(window, 'scroll', {
+  writable: true,
+  value: jest.fn(),
 })
 
-// Mock Service Worker
-Object.defineProperty(navigator, 'serviceWorker', {
-  value: {
-    register: jest.fn().mockResolvedValue({}),
-    getRegistration: jest.fn().mockResolvedValue({}),
-    getRegistrations: jest.fn().mockResolvedValue([]),
-  },
+// Mock window.alert
+Object.defineProperty(window, 'alert', {
+  writable: true,
+  value: jest.fn(),
 })
+
+// Mock window.confirm
+Object.defineProperty(window, 'confirm', {
+  writable: true,
+  value: jest.fn(),
+})
+
+// Mock window.prompt
+Object.defineProperty(window, 'prompt', {
+  writable: true,
+  value: jest.fn(),
+})
+
+// Mock fetch
+global.fetch = jest.fn()
 
 // Mock localStorage
 const localStorageMock = {
@@ -134,18 +186,94 @@ const sessionStorageMock = {
 }
 global.sessionStorage = sessionStorageMock
 
-// Mock console methods in tests
-global.console = {
-  ...console,
-  // Uncomment to ignore a specific log level
-  // log: jest.fn(),
-  // debug: jest.fn(),
-  // info: jest.fn(),
-  // warn: jest.fn(),
-  // error: jest.fn(),
+// Mock crypto
+Object.defineProperty(global, 'crypto', {
+  value: {
+    getRandomValues: jest.fn(),
+    randomUUID: jest.fn(() => 'test-uuid'),
+  },
+})
+
+// Mock URL.createObjectURL
+global.URL.createObjectURL = jest.fn(() => 'test-url')
+
+// Mock URL.revokeObjectURL
+global.URL.revokeObjectURL = jest.fn()
+
+// Mock requestAnimationFrame
+global.requestAnimationFrame = jest.fn(cb => setTimeout(cb, 0))
+
+// Mock cancelAnimationFrame
+global.cancelAnimationFrame = jest.fn()
+
+// Mock performance
+global.performance = {
+  now: jest.fn(() => Date.now()),
+  mark: jest.fn(),
+  measure: jest.fn(),
+  getEntriesByType: jest.fn(() => []),
+  getEntriesByName: jest.fn(() => []),
+  clearMarks: jest.fn(),
+  clearMeasures: jest.fn(),
+  timeOrigin: Date.now(),
 }
 
-// Mock environment variables
-process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000'
-process.env.NEXT_PUBLIC_TELEMETRY_ENABLED = 'false'
-process.env.NODE_ENV = 'test'
+// Mock getComputedStyle
+global.getComputedStyle = jest.fn(() => ({
+  getPropertyValue: jest.fn(),
+}))
+
+// Mock Element.prototype methods
+Element.prototype.scrollIntoView = jest.fn()
+Element.prototype.scrollTo = jest.fn()
+
+// Mock HTMLElement.prototype methods
+HTMLElement.prototype.focus = jest.fn()
+HTMLElement.prototype.blur = jest.fn()
+HTMLElement.prototype.click = jest.fn()
+
+// Mock Date.now for consistent testing
+const mockDate = new Date('2024-01-01T00:00:00.000Z')
+jest.spyOn(Date, 'now').mockImplementation(() => mockDate.getTime())
+
+// Mock Math.random for consistent testing
+jest.spyOn(Math, 'random').mockImplementation(() => 0.5)
+
+// Setup test utilities
+import { configure } from '@testing-library/react'
+
+configure({
+  testIdAttribute: 'data-testid',
+})
+
+// Global test timeout
+jest.setTimeout(10000)
+
+// Suppress specific warnings in tests
+const originalError = console.error
+beforeAll(() => {
+  console.error = (...args) => {
+    if (
+      typeof args[0] === 'string' &&
+      (args[0].includes('Warning: ReactDOM.render is no longer supported') ||
+       args[0].includes('Warning: componentWillReceiveProps') ||
+       args[0].includes('Warning: componentWillUpdate'))
+    ) {
+      return
+    }
+    originalError.call(console, ...args)
+  }
+})
+
+// Cleanup after each test
+afterEach(() => {
+  jest.clearAllMocks()
+  localStorageMock.getItem.mockClear()
+  localStorageMock.setItem.mockClear()
+  localStorageMock.removeItem.mockClear()
+  localStorageMock.clear.mockClear()
+  sessionStorageMock.getItem.mockClear()
+  sessionStorageMock.setItem.mockClear()
+  sessionStorageMock.removeItem.mockClear()
+  sessionStorageMock.clear.mockClear()
+})

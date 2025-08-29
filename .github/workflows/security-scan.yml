@@ -1,0 +1,110 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check for sensitive files
+      run: |
+        echo "🔍 Scanning for sensitive files..."
+        
+        # Check for .env files
+        if find . -name ".env*" -not -name ".env.example" | grep -q .; then
+          echo "❌ Found .env files that should not be committed:"
+          find . -name ".env*" -not -name ".env.example"
+          exit 1
+        fi
+        
+        # Check for backup files
+        if find . -name "*.backup" | grep -q .; then
+          echo "❌ Found backup files that should not be committed:"
+          find . -name "*.backup"
+          exit 1
+        fi
+        
+        # Check for common secret patterns
+        if grep -r "sk_live_" . --exclude-dir=node_modules --exclude-dir=.git; then
+          echo "❌ Found potential live Stripe keys"
+          exit 1
+        fi
+        
+        if grep -r "pk_live_" . --exclude-dir=node_modules --exclude-dir=.git; then
+          echo "❌ Found potential live Stripe keys"
+          exit 1
+        fi
+        
+        # Check for hardcoded passwords
+        if grep -r "password.*=.*['\"][^'\"]*['\"]" . --exclude-dir=node_modules --exclude-dir=.git --exclude="*.md"; then
+          echo "❌ Found potential hardcoded passwords"
+          exit 1
+        fi
+        
+        echo "✅ No sensitive files found"
+        
+    - name: Run npm audit
+      working-directory: ./apps/web
+      run: |
+        echo "🔒 Running security audit..."
+        npm audit --audit-level=moderate
+        
+    - name: Check for console.log statements
+      run: |
+        echo "📝 Checking for console.log statements in production code..."
+        
+        # Count console.log statements in TypeScript/JavaScript files
+        CONSOLE_COUNT=$(grep -r "console\.log" . --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --exclude-dir=node_modules --exclude-dir=.git --exclude="*.test.*" --exclude="*.spec.*" | wc -l)
+        
+        if [ "$CONSOLE_COUNT" -gt 0 ]; then
+          echo "⚠️  Found $CONSOLE_COUNT console.log statements in production code:"
+          grep -r "console\.log" . --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --exclude-dir=node_modules --exclude-dir=.git --exclude="*.test.*" --exclude="*.spec.*"
+          echo "💡 Consider removing or replacing with proper logging"
+        else
+          echo "✅ No console.log statements found in production code"
+        fi
+        
+    - name: Check for 'any' types
+      run: |
+        echo "🔍 Checking for 'any' types in TypeScript code..."
+        
+        # Count 'any' type usage
+        ANY_COUNT=$(grep -r ": any" . --include="*.ts" --include="*.tsx" --exclude-dir=node_modules --exclude-dir=.git --exclude="*.test.*" --exclude="*.spec.*" | wc -l)
+        
+        if [ "$ANY_COUNT" -gt 0 ]; then
+          echo "⚠️  Found $ANY_COUNT 'any' type usages:"
+          grep -r ": any" . --include="*.ts" --include="*.tsx" --exclude-dir=node_modules --exclude-dir=.git --exclude="*.test.*" --exclude="*.spec.*"
+          echo "💡 Consider using 'unknown' with proper type guards"
+        else
+          echo "✅ No 'any' types found"
+        fi
+        
+    - name: Check file sizes
+      run: |
+        echo "📏 Checking for large files..."
+        
+        # Find files larger than 1MB
+        LARGE_FILES=$(find . -type f -size +1M -not -path "./node_modules/*" -not -path "./.git/*" -not -path "./.next/*" -not -path "./dist/*" -not -path "./build/*")
+        
+        if [ -n "$LARGE_FILES" ]; then
+          echo "⚠️  Found large files (>1MB):"
+          echo "$LARGE_FILES"
+          echo "💡 Consider optimizing or adding to .gitignore"
+        else
+          echo "✅ No unusually large files found"
+        fi
+        
+    - name: Security scan summary
+      run: |
+        echo "🎯 Security scan completed successfully!"
+        echo "✅ No sensitive files committed"
+        echo "✅ Security audit passed"
+        echo "✅ Code quality checks completed"

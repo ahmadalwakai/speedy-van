@@ -5,6 +5,7 @@ import { sendAdminNotification } from '@/lib/notifications';
 import { sendDriverNotification } from '@/lib/driver-notifications';
 import { generateUniqueUnifiedBookingId } from '@/lib/booking-id';
 import { createInvoiceForBooking } from '@/lib/invoices';
+import { safeSendAutoSMS } from '@/lib/sms.config';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -106,6 +107,29 @@ async function handleCheckoutSessionCompleted(session: any) {
     });
 
     console.log('✅ Booking confirmed:', { bookingId });
+    
+    // Send SMS confirmation to customer
+    try {
+      const booking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+        select: { customerPhone: true, reference: true, scheduledAt: true }
+      });
+      
+      if (booking?.customerPhone) {
+        await safeSendAutoSMS({
+          type: "BOOKING_CONFIRMED",
+          to: booking.customerPhone,
+          data: { 
+            ref: booking.reference,
+            date: booking.scheduledAt ? new Date(booking.scheduledAt).toLocaleDateString('en-GB') : 'TBD',
+            time: booking.scheduledAt ? new Date(booking.scheduledAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : 'TBD'
+          }
+        });
+      }
+    } catch (smsError) {
+      console.warn('⚠️ Failed to send booking confirmation SMS:', smsError);
+      // Don't fail the webhook if SMS fails
+    }
     
     // Get the complete booking data to send admin notification
     const completeBooking = await prisma.booking.findUnique({

@@ -1,4 +1,6 @@
+'use client';
 import React from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   VStack,
@@ -46,7 +48,7 @@ export function EmptyState({
           color={useColorModeValue("gray.600", "gray.400")}
           mb={4}
         >
-          <Icon as={() => icon} boxSize={6} />
+          {React.cloneElement(icon, { boxSize: 6 })}
         </Box>
       );
     }
@@ -179,6 +181,8 @@ export function EmptyState({
 
 // Predefined empty states for common scenarios
 export function NoOrdersEmptyState() {
+  const router = useRouter();
+  
   return (
     <EmptyState
       title="No orders yet"
@@ -186,12 +190,12 @@ export function NoOrdersEmptyState() {
       icon={<span role="img" aria-hidden="true">📦</span>}
       action={{
         label: "Book a Move",
-        onClick: () => window.location.href = "/book",
+        onClick: () => router.push("/book"),
         href: "/book",
       }}
       secondaryAction={{
         label: "Learn How It Works",
-        onClick: () => window.location.href = "/how-it-works",
+        onClick: () => router.push("/how-it-works"),
         href: "/how-it-works",
       }}
     />
@@ -199,6 +203,8 @@ export function NoOrdersEmptyState() {
 }
 
 export function NoInvoicesEmptyState() {
+  const router = useRouter();
+  
   return (
     <EmptyState
       title="No invoices yet"
@@ -206,7 +212,7 @@ export function NoInvoicesEmptyState() {
       icon={<span role="img" aria-hidden="true">💰</span>}
       action={{
         label: "Book a Move",
-        onClick: () => window.location.href = "/book",
+        onClick: () => router.push("/book"),
         href: "/book",
       }}
     />
@@ -214,6 +220,8 @@ export function NoInvoicesEmptyState() {
 }
 
 export function NoAddressesEmptyState() {
+  const router = useRouter();
+  
   return (
     <EmptyState
       title="No saved addresses"
@@ -221,7 +229,7 @@ export function NoAddressesEmptyState() {
       icon={<span role="img" aria-hidden="true">📍</span>}
       action={{
         label: "Add Address",
-        onClick: () => window.location.href = "/customer-portal/addresses",
+        onClick: () => router.push("/customer-portal/addresses"),
         href: "/customer-portal/addresses",
       }}
     />
@@ -229,6 +237,8 @@ export function NoAddressesEmptyState() {
 }
 
 export function NoContactsEmptyState() {
+  const router = useRouter();
+  
   return (
     <EmptyState
       title="No saved contacts"
@@ -236,7 +246,7 @@ export function NoContactsEmptyState() {
       icon={<span role="img" aria-hidden="true">👥</span>}
       action={{
         label: "Add Contact",
-        onClick: () => window.location.href = "/customer-portal/addresses",
+        onClick: () => router.push("/customer-portal/addresses"),
         href: "/customer-portal/addresses",
       }}
     />
@@ -244,6 +254,8 @@ export function NoContactsEmptyState() {
 }
 
 export function NoSupportTicketsEmptyState() {
+  const router = useRouter();
+  
   return (
     <EmptyState
       title="No support tickets"
@@ -251,7 +263,7 @@ export function NoSupportTicketsEmptyState() {
       icon={<span role="img" aria-hidden="true">🎫</span>}
       action={{
         label: "Get Help",
-        onClick: () => window.location.href = "/customer-portal/support",
+        onClick: () => router.push("/customer-portal/support"),
         href: "/customer-portal/support",
       }}
     />
@@ -259,6 +271,8 @@ export function NoSupportTicketsEmptyState() {
 }
 
 export function SearchEmptyState({ query }: { query: string }) {
+  const router = useRouter();
+  
   return (
     <EmptyState
       title={`No results for "${query}"`}
@@ -266,11 +280,11 @@ export function SearchEmptyState({ query }: { query: string }) {
       icon={<span role="img" aria-hidden="true">🔍</span>}
       action={{
         label: "Clear Search",
-        onClick: () => window.location.reload(),
+        onClick: () => router.refresh(),
       }}
       secondaryAction={{
         label: "Browse Categories",
-        onClick: () => window.location.href = "/book",
+        onClick: () => router.push("/book"),
         href: "/book",
       }}
     />
@@ -286,6 +300,8 @@ export function ErrorEmptyState({
   description?: string;
   onRetry?: () => void;
 }) {
+  const router = useRouter();
+  
   return (
     <EmptyState
       title={title}
@@ -299,12 +315,12 @@ export function ErrorEmptyState({
             }
           : {
               label: "Refresh Page",
-              onClick: () => window.location.reload(),
+              onClick: () => router.refresh(),
             }
       }
       secondaryAction={{
         label: "Contact Support",
-        onClick: () => window.location.href = "/customer-portal/support",
+        onClick: () => router.push("/customer-portal/support"),
         href: "/customer-portal/support",
       }}
     />

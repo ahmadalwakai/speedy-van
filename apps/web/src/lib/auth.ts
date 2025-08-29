@@ -110,7 +110,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger }) {
       if (account && user) {
         // Initial sign in
         token.id = user.id;
@@ -122,6 +122,13 @@ export const authOptions: NextAuthOptions = {
         token.driverStatus = (user as any).driverStatus;
         token.applicationStatus = (user as any).applicationStatus;
       }
+      
+      // Update token on session update
+      if (trigger === 'update') {
+        // Force token refresh when session is updated
+        token.iat = Math.floor(Date.now() / 1000);
+      }
+      
       return token;
     },
     async session({ session, token }) {
@@ -170,6 +177,11 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 60 * 60, // 1 hour - update session every hour
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days - same as session
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

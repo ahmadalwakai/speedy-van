@@ -5,106 +5,16 @@ import {
   Flex, 
   HStack, 
   Spacer, 
-  Avatar, 
   Text, 
-  Link as ChakraLink, 
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  MenuDivider,
-  useColorModeValue,
-  Drawer,
-  DrawerBody,
-  DrawerHeader,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerCloseButton,
-  VStack,
-  useDisclosure,
-  Button,
-  Divider
+  Link as ChakraLink
 } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { requireRole } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { signOut } from "next-auth/react";
 import SkipLink from "@/components/site/SkipLink";
 import CustomerChatWidget from "@/components/Chat/CustomerChatWidget";
-
-// Mobile Navigation Component
-function MobileNav({ session }: { session: any }) {
-  const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const navItems = [
-    { href: "/customer-portal", label: "Dashboard" },
-    { href: "/customer-portal/orders", label: "My Orders" },
-    { href: "/customer-portal/track", label: "Track" },
-    { href: "/customer-portal/invoices", label: "Invoices & Payments" },
-    { href: "/customer-portal/addresses", label: "Addresses & Contacts" },
-    { href: "/customer-portal/settings", label: "Settings" },
-    { href: "/customer-portal/support", label: "Support" },
-  ];
-
-  return (
-    <>
-      <IconButton
-        aria-label="Open navigation menu"
-        icon={<span>☰</span>}
-        variant="ghost"
-        size="sm"
-        display={{ base: "inline-flex", lg: "none" }}
-        onClick={onOpen}
-      />
-      
-      <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
-        <DrawerOverlay />
-        <DrawerContent>
-          <DrawerCloseButton />
-          <DrawerHeader borderBottomWidth="1px">
-            <Text fontWeight="bold">Speedy Van</Text>
-            <Text fontSize="sm" color="text.muted" mt={1}>
-              {session.user?.name}
-            </Text>
-          </DrawerHeader>
-          
-          <DrawerBody>
-            <VStack spacing={4} align="stretch" mt={4}>
-              {navItems.map((item) => (
-                <Button
-                  key={item.href}
-                  as={NextLink}
-                  href={item.href}
-                  variant="ghost"
-                  justifyContent="flex-start"
-                  onClick={onClose}
-                  aria-label={`Navigate to ${item.label}`}
-                >
-                  {item.label}
-                </Button>
-              ))}
-              
-              <Divider my={4} />
-              
-              <Button
-                onClick={() => {
-                  onClose();
-                  signOut({ callbackUrl: "/" });
-                }}
-                variant="ghost"
-                color="danger"
-                justifyContent="flex-start"
-              >
-                Sign out
-              </Button>
-            </VStack>
-          </DrawerBody>
-        </DrawerContent>
-      </Drawer>
-    </>
-  );
-}
+import MobileNav from "@/components/customer/MobileNav";
+import UserMenu from "@/components/customer/UserMenu";
 
 export default async function CustomerPortalLayout({ children }: { children: React.ReactNode }) {
   const session = await requireRole("customer");
@@ -158,41 +68,7 @@ export default async function CustomerPortalLayout({ children }: { children: Rea
             
             {/* Desktop User Menu */}
             <HStack spacing={4} display={{ base: "none", lg: "flex" }}>
-              <Menu>
-                <MenuButton
-                  as={IconButton}
-                  aria-label="User menu"
-                  icon={
-                    <Avatar 
-                      size="sm" 
-                      name={session.user?.name ?? "Customer"}
-                      src={undefined}
-                    />
-                  }
-                  variant="ghost"
-                  size="sm"
-                />
-                <MenuList>
-                  <Box px={3} py={2}>
-                    <Text fontWeight="medium">{session.user?.name ?? "Customer"}</Text>
-                    <Text fontSize="sm" color="text.muted">{session.user?.email}</Text>
-                  </Box>
-                  <MenuDivider />
-                  <MenuItem as={NextLink} href="/customer-portal/settings">
-                    Settings
-                  </MenuItem>
-                  <MenuItem as={NextLink} href="/customer-portal/support">
-                    Help & Support
-                  </MenuItem>
-                  <MenuDivider />
-                  <MenuItem 
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                    color="danger"
-                  >
-                    Sign out
-                  </MenuItem>
-                </MenuList>
-              </Menu>
+              <UserMenu session={session} />
             </HStack>
           </Flex>
         </Container>

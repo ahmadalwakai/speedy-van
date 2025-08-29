@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
  * Ensures users are redirected to their appropriate portal based on their role
  */
 export function useRoleBasedRedirect() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
 
   useEffect(() => {
@@ -50,9 +50,16 @@ export function useRoleBasedRedirect() {
     // Only redirect if the destination is different from current path
     if (redirectUrl !== currentPath) {
       console.log(`🔄 Redirecting ${userRole} user from ${currentPath} to ${redirectUrl}`);
-      router.replace(redirectUrl);
+      
+      // Add small delay to ensure session is fully updated
+      setTimeout(() => {
+        // Force session update before redirect to ensure latest data
+        update().then(() => {
+          router.replace(redirectUrl);
+        });
+      }, 200); // 200ms delay for better reliability
     }
-  }, [session, status, router]);
+  }, [session, status, router, update]);
 
   return {
     session,

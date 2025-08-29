@@ -21,7 +21,7 @@ import {
 import NextLink from "next/link";
 import { PrismaClient } from "@prisma/client";
 import { requireRole } from "@/lib/auth";
-import { EmptyState } from "@/components/EmptyState";
+import { NoOrdersEmptyState } from "@/components/EmptyState";
 
 const prisma = new PrismaClient();
 
@@ -265,21 +265,7 @@ export default async function CustomerPortalHome() {
         </HStack>
 
         {recentOrders.length === 0 ? (
-          <EmptyState
-            title="No orders yet"
-            description="Start by making your first booking. We'll help you move your items safely and efficiently."
-            icon={<span role="img" aria-hidden="true">📦</span>}
-            action={{
-              label: "Book a Move",
-              onClick: () => window.location.href = "/book",
-              href: "/book",
-            }}
-            secondaryAction={{
-              label: "Learn How It Works",
-              onClick: () => window.location.href = "/how-it-works",
-              href: "/how-it-works",
-            }}
-          />
+          <NoOrdersEmptyState />
         ) : (
           <VStack align="stretch" spacing={3}>
             {recentOrders.map((order) => (

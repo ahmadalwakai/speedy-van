@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import NextLink from "next/link";
 import { FaTruck, FaShieldAlt, FaUser, FaLock, FaSignInAlt, FaArrowRight, FaMapMarkerAlt, FaClock, FaStar } from "react-icons/fa";
 import { useRoleBasedRedirect } from '@/hooks/useRoleBasedRedirect';
+import { useSessionRefresh } from '@/hooks/useSessionRefresh';
 
 export default function DriverLogin() {
   const [email, setEmail] = useState("");
@@ -15,8 +16,9 @@ export default function DriverLogin() {
   const [error, setError] = useState("");
   const [csrfToken, setCsrfToken] = useState("");
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const { userRole } = useRoleBasedRedirect();
+  const { refreshSession } = useSessionRefresh();
 
   const bgColor = useColorModeValue('white', 'gray.800');
   const cardBg = useColorModeValue('white', 'gray.700');
@@ -64,8 +66,15 @@ export default function DriverLogin() {
       if (result?.error) {
         setError(result.error);
       } else if (result?.ok) {
-        console.log('✅ Sign in successful, waiting for session update...');
-        // The useRoleBasedRedirect hook will automatically redirect once the session is updated
+        console.log('✅ Sign in successful, refreshing session...');
+        // Use the session refresh hook for better reliability
+        const refreshSuccess = await refreshSession();
+        if (refreshSuccess) {
+          console.log('✅ Session refreshed, redirect should happen automatically');
+        } else {
+          console.log('⚠️ Session refresh failed, but login was successful');
+        }
+        // The useRoleBasedRedirect hook will handle the redirect automatically
         // No need for manual redirect logic here
       } else {
         setError("Authentication failed. Please try again.");

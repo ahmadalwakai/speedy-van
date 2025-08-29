@@ -64,6 +64,7 @@ export async function reserveUniqueReference(prefix = "SV-", maxTries = 5): Prom
           totalGBP: 0,
           customerName: "Temporary",
           customerPhone: "+44000000000",
+          customerPhoneNormalized: "44000000000",
           customerEmail: "temp@example.com",
           status: "DRAFT"
         },

@@ -51,10 +51,36 @@ async function main() {
   const booking = await prisma.booking.create({
     data: {
       reference: 'SV-123456',
-      pickupAddressId: pickupAddress.id,
-      dropoffAddressId: dropoffAddress.id,
-      pickupPropertyId: pickupProperty.id,
-      dropoffPropertyId: dropoffProperty.id,
+      pickupAddress: {
+        create: {
+          label: '123 Main Street, London, UK',
+          postcode: 'SW1A 1AA',
+          lat: 51.5074,
+          lng: -0.1278,
+        }
+      },
+      dropoffAddress: {
+        create: {
+          label: '456 Oak Avenue, London, UK',
+          postcode: 'SW1A 1AA',
+          lat: 51.5074,
+          lng: -0.1278,
+        }
+      },
+      pickupProperty: {
+        create: {
+          propertyType: 'FLAT',
+          accessType: 'WITHOUT_LIFT',
+          floors: 0,
+        }
+      },
+      dropoffProperty: {
+        create: {
+          propertyType: 'FLAT',
+          accessType: 'WITHOUT_LIFT',
+          floors: 0,
+        }
+      },
       scheduledAt: new Date('2024-09-15T10:00:00Z'),
       estimatedDurationMinutes: 180,
       crewSize: 'TWO',
@@ -68,6 +94,7 @@ async function main() {
       totalGBP: 2800, // £28.00 total
       customerName: 'John Smith',
       customerPhone: '+447700900000',
+      customerPhoneNormalized: '447700900000',
       customerEmail: 'john.smith@example.com',
       status: 'DRAFT',
     },
@@ -123,10 +150,36 @@ async function main() {
   const confirmedBooking = await prisma.booking.create({
     data: {
       reference: 'SV-789012',
-      pickupAddressId: pickupAddress.id,
-      dropoffAddressId: dropoffAddress.id,
-      pickupPropertyId: pickupProperty.id,
-      dropoffPropertyId: dropoffProperty.id,
+      pickupAddress: {
+        create: {
+          label: '789 High Street, London, UK',
+          postcode: 'SW1A 1AA',
+          lat: 51.5074,
+          lng: -0.1278,
+        }
+      },
+      dropoffAddress: {
+        create: {
+          label: '321 Park Lane, London, UK',
+          postcode: 'SW1A 1AA',
+          lat: 51.5074,
+          lng: -0.1278,
+        }
+      },
+      pickupProperty: {
+        create: {
+          propertyType: 'DETACHED',
+          accessType: 'WITH_LIFT',
+          floors: 0,
+        }
+      },
+      dropoffProperty: {
+        create: {
+          propertyType: 'DETACHED',
+          accessType: 'WITH_LIFT',
+          floors: 0,
+        }
+      },
       scheduledAt: new Date('2024-09-10T14:00:00Z'),
       estimatedDurationMinutes: 120,
       crewSize: 'THREE',
@@ -140,6 +193,7 @@ async function main() {
       totalGBP: 2520, // £25.20 total
       customerName: 'Sarah Johnson',
       customerPhone: '+447700900001',
+      customerPhoneNormalized: '447700900001',
       customerEmail: 'sarah.johnson@example.com',
       status: 'CONFIRMED',
       stripePaymentIntentId: 'pi_live_confirmed_123',

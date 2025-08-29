@@ -1,0 +1,14 @@
+# Core web app
+/apps/web/**            @ahmad-alwakai
+# Workflows + CI
+/.github/**             @ahmad-alwakai
+# Infra & package managers
+/package.json           @ahmad-alwakai
+/pnpm-workspace.yaml    @ahmad-alwakai
+# Prisma & DB models
+/prisma/**              @ahmad-alwakai
+# Environment and config
+/.env*                  @ahmad-alwakai
+/render.yaml            @ahmad-alwakai
+# Security and sensitive files
+/scripts/**             @ahmad-alwakai

@@ -80,12 +80,12 @@ export default defineConfig({
     timeout: 120 * 1000,
     env: {
       // Use the same secret as .env.local to avoid JWT decryption issues
-      NEXTAUTH_SECRET: 'ZV6xh/oJhYk9wwrjX5RA5JgjC9uCSuWZHpIprjYs2LA=',
+      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'test-secret-for-playwright',
       NEXTAUTH_URL: 'http://localhost:3000',
       // Add database environment variables to ensure consistency
-      DATABASE_URL: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_qNFE0IHpk1vT@ep-dry-glitter-aftvvy9d-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+      DATABASE_URL: process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/testdb',
       // Ensure JWT encryption is consistent
-      JWT_SECRET: 'ZV6xh/oJhYk9wwrjX5RA5JgjC9uCSuWZHpIprjYs2LA=',
+      JWT_SECRET: process.env.JWT_SECRET || 'test-jwt-secret',
     },
   },
   

@@ -1,0 +1,85 @@
+name: Conventional Commits Check
+on: 
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check:
+    name: Check Commit Messages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check PR Title Format
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false
+      
+      - name: Check Commit Message Format
+        run: |
+          echo "🔍 Checking commit message format..."
+          
+          # Get all commits in this PR
+          COMMITS=$(git log --oneline origin/main..HEAD)
+          
+          if [ -z "$COMMITS" ]; then
+            echo "✅ No new commits to check"
+            exit 0
+          fi
+          
+          echo "Commits to check:"
+          echo "$COMMITS"
+          echo ""
+          
+          # Check each commit message
+          while IFS= read -r commit; do
+            HASH=$(echo "$commit" | cut -d' ' -f1)
+            MESSAGE=$(echo "$commit" | cut -d' ' -f2-)
+            
+            # Check if message follows conventional format
+            if ! echo "$MESSAGE" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z-]+\))?: .+'; then
+              echo "❌ Commit $HASH has invalid format: $MESSAGE"
+              echo "   Expected format: type(scope): description"
+              echo "   Valid types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
+              echo ""
+              exit 1
+            fi
+            
+            echo "✅ Commit $HASH: $MESSAGE"
+          done <<< "$COMMITS"
+          
+          echo "✅ All commit messages follow conventional format"
+      
+      - name: Check Branch Naming
+        run: |
+          echo "🔍 Checking branch naming convention..."
+          
+          BRANCH_NAME="${{ github.head_ref }}"
+          
+          # Check if branch follows naming convention
+          if ! echo "$BRANCH_NAME" | grep -qE '^(feature|bugfix|hotfix|release|chore|docs|test|refactor|perf|build|ci)/[a-z0-9-]+'; then
+            echo "⚠️  WARNING: Branch '$BRANCH_NAME' doesn't follow naming convention"
+            echo "   Expected format: type/description"
+            echo "   Valid types: feature, bugfix, hotfix, release, chore, docs, test, refactor, perf, build, ci"
+            echo "   Example: feature/user-authentication"
+            echo ""
+            echo "   This is a warning only - PR will still be processed"
+          else
+            echo "✅ Branch '$BRANCH_NAME' follows naming convention"
+          fi
