@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import HomePageContent from './HomePageContent';
+import MobileHomePageContent from './MobileHomePageContent';
 
 export const metadata: Metadata = {
   title: "Speedy Van | Book, Track, and Move Fast",
@@ -15,10 +15,30 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: { card: "summary_large_image", site: "@speedyvan", creator: "@speedyvan" },
+  // Mobile-specific meta tags
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+    viewportFit: 'cover',
+  },
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#00C2FF' },
+    { media: '(prefers-color-scheme: dark)', color: '#00C2FF' },
+  ],
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Speedy Van',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function HomePage() {
-  return <HomePageContent />;
+  return <MobileHomePageContent />;
 }
 
 

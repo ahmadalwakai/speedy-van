@@ -1,0 +1,44 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+
+  - repo: local
+    hooks:
+      - id: broken-link-check
+        name: Check for broken links
+        entry: node scripts/check-broken-links.js
+        language: node
+        files: \.(tsx?|jsx?|md|html)$
+        pass_filenames: false
+        args: [apps/web]
+        
+      - id: lighthouse-check
+        name: Lighthouse performance check
+        entry: bash -c 'cd apps/web && npm run performance:lighthouse'
+        language: system
+        files: \.(tsx?|jsx?|css|scss)$
+        pass_filenames: false
+        stages: [pre-push]
+        
+      - id: schema-validation
+        name: Validate JSON-LD schemas
+        entry: bash -c 'cd apps/web && npm run test:schema'
+        language: system
+        files: \.(tsx?|jsx?)$
+        pass_filenames: false
+        
+      - id: seo-check
+        name: SEO validation check
+        entry: bash -c 'cd apps/web && npm run seo-check'
+        language: system
+        files: \.(tsx?|jsx?)$
+        pass_filenames: false
+
